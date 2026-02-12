@@ -48,10 +48,14 @@ public class LoginTela extends JFrame {
 
         if (dao.validarLogin(login, senha)) {
             JOptionPane.showMessageDialog(this, "✅ Login realizado com sucesso!");
-            // Aqui futuramente você abre a tela principal
+
+            this.dispose(); // fecha a tela de login
+            new TelaPrincipal(); // abre a tela principal
+
         } else {
             JOptionPane.showMessageDialog(this, "❌ Usuário ou senha inválidos!");
         }
+
     }
 
     public static void main(String[] args) {
