@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.sql.SQLException;
 import java.util.List;
 
 public class MembroDAO {
@@ -133,4 +134,22 @@ public class MembroDAO {
             ps.executeUpdate();
         }
     }
+    /**
+     * Deletar membro
+      */
+    public boolean excluir(int id) {
+        String sql = "DELETE FROM TBL_MEMBROS WHERE ID_MEMBRO = ?";
+        try (Connection conn = ConexaoFirebird.getConexao();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setInt(1, id);
+            int rowsAffected = stmt.executeUpdate();
+
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

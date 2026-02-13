@@ -122,9 +122,14 @@ public class PainelMembros extends JPanel {
         JButton btnLimpar = new JButton("Limpar");
         btnLimpar.addActionListener(e -> limparCampos());
 
+        // Botão de exclusão
+        JButton btnExcluir = new JButton("Excluir");
+        btnExcluir.addActionListener(e -> excluirMembro());
+
         botoes.add(btnNovo);
         botoes.add(btnSalvar);
         botoes.add(btnLimpar);
+        botoes.add(btnExcluir);
 
         add(botoes, BorderLayout.SOUTH);
 
@@ -214,6 +219,8 @@ public class PainelMembros extends JPanel {
         idMembroSelecionado = null;
     }
 
+
+
     private void carregarTabela() {
         try {
             MembroDAO dao = new MembroDAO();
@@ -238,6 +245,36 @@ public class PainelMembros extends JPanel {
                     "Erro ao carregar membros:\n" + e.getMessage(),
                     "Erro",
                     JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // Função para excluir membro
+    private void excluirMembro() {
+        if (idMembroSelecionado == null) {
+            JOptionPane.showMessageDialog(this, "Nenhum membro selecionado para exclusão.");
+            return;
+        }
+
+        int confirmacao = JOptionPane.showConfirmDialog(this,
+                "Tem certeza que deseja excluir este membro?",
+                "Confirmação de exclusão",
+                JOptionPane.YES_NO_OPTION);
+
+        if (confirmacao == JOptionPane.YES_OPTION) {
+            try {
+                MembroDAO dao = new MembroDAO();
+                boolean sucesso = dao.excluir(idMembroSelecionado);
+
+                if (sucesso) {
+                    JOptionPane.showMessageDialog(this, "Membro excluído com sucesso!");
+                    limparCampos(); // Limpa os campos após a exclusão
+                    carregarTabela(); // Atualiza a tabela para refletir a exclusão
+                } else {
+                    JOptionPane.showMessageDialog(this, "Erro ao excluir o membro.");
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Erro: " + e.getMessage());
+            }
         }
     }
 }
