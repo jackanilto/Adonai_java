@@ -6,6 +6,8 @@ import model.Membro;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.List;
 
 public class PainelMembros extends JPanel {
@@ -20,6 +22,9 @@ public class PainelMembros extends JPanel {
 
     private JTable tabela;
     private DefaultTableModel modeloTabela;
+
+    // 🔑 Guarda o ID do membro selecionado para edição
+    private Integer idMembroSelecionado = null;
 
     public PainelMembros() {
         setLayout(new BorderLayout());
@@ -109,9 +114,10 @@ public class PainelMembros extends JPanel {
         JPanel botoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
         JButton btnNovo = new JButton("Novo");
+        btnNovo.addActionListener(e -> limparCampos());
 
         JButton btnSalvar = new JButton("Salvar");
-        btnSalvar.addActionListener(e -> salvarMembro());
+        btnSalvar.addActionListener(e -> salvarOuAtualizar());
 
         JButton btnLimpar = new JButton("Limpar");
         btnLimpar.addActionListener(e -> limparCampos());
@@ -122,17 +128,47 @@ public class PainelMembros extends JPanel {
 
         add(botoes, BorderLayout.SOUTH);
 
+        // 🖱 Clique na tabela para edição
+        tabela.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int linha = tabela.getSelectedRow();
+
+                if (linha != -1) {
+                    // 🔑 Captura o ID do membro selecionado
+                    idMembroSelecionado = Integer.parseInt(
+                            tabela.getValueAt(linha, 0).toString()
+                    );
+
+                    txtRoll.setText(tabela.getValueAt(linha, 1).toString());
+                    txtNome.setText(tabela.getValueAt(linha, 2).toString());
+                    txtCpf.setText(tabela.getValueAt(linha, 3).toString());
+                    txtTelefone.setText(tabela.getValueAt(linha, 4).toString());
+                    txtEmail.setText(tabela.getValueAt(linha, 5).toString());
+
+                    String ativo = tabela.getValueAt(linha, 6).toString();
+                    chkAtivo.setSelected("Sim".equalsIgnoreCase(ativo));
+                }
+            }
+        });
+
         // 🔄 Carregar dados ao abrir
         carregarTabela();
     }
 
-    private void salvarMembro() {
+    // 🔁 Decide se vai INSERIR ou ATUALIZAR
+    private void salvarOuAtualizar() {
         try {
-            Membro membro = new Membro();
-
             if (txtNome.getText().trim().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "O nome é obrigatório!");
                 return;
+            }
+
+            Membro membro = new Membro();
+
+            // Se tem ID selecionado, é UPDATE
+            if (idMembroSelecionado != null) {
+                membro.setId(idMembroSelecionado);
             }
 
             membro.setIdIgreja(1);
@@ -145,16 +181,22 @@ public class PainelMembros extends JPanel {
             membro.setAtivo(chkAtivo.isSelected());
 
             MembroDAO dao = new MembroDAO();
-            dao.salvar(membro);
 
-            JOptionPane.showMessageDialog(this, "Membro salvo com sucesso!");
+            if (idMembroSelecionado == null) {
+                dao.salvar(membro);
+                JOptionPane.showMessageDialog(this, "Membro cadastrado com sucesso!");
+            } else {
+                dao.atualizar(membro);
+                JOptionPane.showMessageDialog(this, "Membro atualizado com sucesso!");
+            }
+
             limparCampos();
             carregarTabela();
 
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Roll deve ser um número!");
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erro ao salvar membro: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage());
             ex.printStackTrace();
         }
     }
@@ -167,6 +209,9 @@ public class PainelMembros extends JPanel {
         txtEmail.setText("");
         cbSexo.setSelectedIndex(0);
         chkAtivo.setSelected(false);
+
+        // 🔄 Limpa o ID para voltar ao modo NOVO
+        idMembroSelecionado = null;
     }
 
     private void carregarTabela() {

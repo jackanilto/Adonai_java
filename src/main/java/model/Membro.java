@@ -11,6 +11,8 @@ public class Membro {
     private String sexo;
     private boolean ativo;
     private Integer idIgreja;
+    private Integer idMembroSelecionado = null;
+
 
     // Getters e Setters
     public Integer getIdIgreja() {  return idIgreja; }
